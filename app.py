@@ -3,13 +3,12 @@ import numpy as np
 
 st.set_page_config(page_title="Industrial ML Health System")
 
-st.title("🏭 Industrial Asset Health Prediction (ML Deployed)")
+st.title("🏭 Industrial Asset Health Prediction")
+st.write("ML model (KNN) deployed on Streamlit Cloud")
 
-st.write("KNN-based Machine Learning model deployed on Streamlit Cloud")
-
-# ---------------------------------------
-# 1. Create synthetic training dataset
-# ---------------------------------------
+# -----------------------------
+# Training data (synthetic)
+# -----------------------------
 np.random.seed(42)
 n = 500
 
@@ -23,24 +22,23 @@ X_train = np.column_stack(
     (vibration, temperature, current, frequency, quality)
 )
 
-# Labels (supervised learning)
 y_train = np.where(
     (vibration < 3) & (temperature < 50) & (quality > 0.85), 0,
     np.where((vibration < 6) & (temperature < 70), 1, 2)
 )
 
-# ---------------------------------------
-# 2. KNN implementation (ML logic)
-# ---------------------------------------
-def knn_predict(X_train, y_train, x_test, k=5):
-    distances = np.linalg.norm(X_train - x_test, axis=1)
-    nearest_idx = distances.argsort()[:k]
-    nearest_labels = y_train[nearest_idx]
-    return np.bincount(nearest_labels).argmax()
+# -----------------------------
+# KNN from scratch (ML)
+# -----------------------------
+def knn_predict(X, y, x, k=5):
+    distances = np.linalg.norm(X - x, axis=1)
+    nearest = distances.argsort()[:k]
+    labels = y[nearest]
+    return np.bincount(labels).argmax()
 
-# ---------------------------------------
-# 3. Streamlit Inputs
-# ---------------------------------------
+# -----------------------------
+# Inputs
+# -----------------------------
 v = st.number_input("Vibration", 0.0, 10.0, 2.5)
 t = st.number_input("Temperature (°C)", 20.0, 100.0, 45.0)
 c = st.number_input("Current / Load", 0.0, 30.0, 10.0)
@@ -48,12 +46,12 @@ f = st.number_input("Frequency", 30.0, 70.0, 50.0)
 q = st.number_input("Quality Index", 0.0, 1.0, 0.9)
 
 if st.button("Predict Health"):
-    x_test = np.array([v, t, c, f, q])
-    pred = knn_predict(X_train, y_train, x_test)
+    x = np.array([v, t, c, f, q])
+    pred = knn_predict(X_train, y_train, x)
 
     if pred == 0:
-        st.success("🟢 HEALTHY CONDITION")
+        st.success("🟢 HEALTHY")
     elif pred == 1:
-        st.warning("🟠 WARNING CONDITION")
+        st.warning("🟠 WARNING")
     else:
-        st.error("🔴 CRITICAL CONDITION")
+        st.error("🔴 CRITICAL")
